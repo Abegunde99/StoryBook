@@ -1,6 +1,9 @@
+const path = require('path');
 const express = require('express');
 const dotenv = require('dotenv');
-const {engine} = require('express-handlebars');
+const { engine } = require('express-handlebars');
+const passport = require('passport');
+const session = require('express-session');
 const morgan = require('morgan');
 const indexRouter = require('./routes/index');
 
@@ -11,6 +14,9 @@ dotenv.config({ path: './config/config.env' });
 const connectDB = require('./config/db');
 connectDB();
 
+//passport config
+require('./config/passport')(passport);
+
 const app = express();
 
 //handlebars
@@ -19,11 +25,22 @@ app.set('view engine', '.hbs');
 app.set('views', 'views');
 
 //static folder
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 //body parser
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+
+//session middleware
+app.use(session({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: false
+}))
+
+//passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
 
 
 //logging
@@ -33,6 +50,7 @@ if (process.env.NODE_ENV == 'development') {
 
 
 //routes
+app.use('/auth', require('./routes/auth'));
 app.use('/', indexRouter);
 
 const PORT = process.env.PORT || 5000;
