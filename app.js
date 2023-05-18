@@ -3,7 +3,9 @@ const express = require('express');
 const dotenv = require('dotenv');
 const { engine } = require('express-handlebars');
 const passport = require('passport');
+const mongoose = require('mongoose');
 const session = require('express-session');
+const MongoStore = require('connect-mongo')(session);
 const morgan = require('morgan');
 const indexRouter = require('./routes/index');
 
@@ -35,7 +37,8 @@ app.use(express.json());
 app.use(session({
     secret: 'keyboard cat',
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    store: new MongoStore({mongooseConnection: mongoose.connection})
 }))
 
 //passport middleware
